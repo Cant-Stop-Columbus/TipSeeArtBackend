@@ -5,13 +5,14 @@ from api import SALT, app
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 from api.database import get_db
-from fastapi import Depends, HTTPException, Response, status
+from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
-from api.schemas import UserRegister
+from api.schemas import UserRegister, UserArtist
 from api.models import User
 from api.auth import (
     authenticate_user,
     create_access_token,
+    get_current_user,
     get_password_hash,
     Token,
 )
@@ -33,25 +34,6 @@ async def create_user(user: UserRegister, db: Session = Depends(get_db)):
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-# @app.post("/user/login")
-# async def login_user(
-#     user: UserLogin, response: Response, db: Session = Depends(get_db)
-# ):
-#     try:
-#         db_user = (
-#             db.query(User)
-#             .where(func.lower(User.email) == func.lower(user.email))
-#             .first()
-#         )
-#         if db_user and bcrypt.checkpw(
-#             user.password.encode(), db_user.password.encode()
-#         ):
-#             return {"authorization": signJWT(user.email), "status": "Success"}
-#     except Exception as e:
-#         raise HTTPException(401, detail=str(e))
-#     raise HTTPException(401, detail="Invalid email or password")
-
-
 @app.post("/token", response_model=Token)
 async def login_for_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
@@ -71,3 +53,8 @@ async def login_for_access_token(
         return {"access_token": access_token, "token_type": "bearer"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/me", response_model=UserArtist)
+def get_me(user: User = Depends(get_current_user)):
+    return user

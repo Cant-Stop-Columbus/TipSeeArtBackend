@@ -4,7 +4,9 @@ from sqlalchemy.orm import Session
 from api.database import get_db
 from api.schemas import ArtistSchema, ArtistRegister
 from api.models import Artist, User
+from api.schemas import ArtistUpdate, ArtistWithId
 from api.utils.file_upload import upload_image
+from api.auth import get_current_user
 
 
 @app.get("/artists", response_model=list[ArtistSchema])
@@ -26,28 +28,46 @@ def get_artist(name: str, db: Session = Depends(get_db)):
         )
 
 
-@app.post("/artists/create", status_code=status.HTTP_201_CREATED)
-def create_artist(artist: ArtistRegister, db: Session = Depends(get_db)):
+@app.post(
+    "/artists/create", status_code=status.HTTP_201_CREATED, response_model=ArtistWithId
+)
+def create_artist(
+    artist: ArtistUpdate,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
     artist = artist.dict()
-    existing_artist = db.query(Artist).filter_by(user_id=artist["user_id"]).first()
+    existing_artist = db.query(Artist).filter_by(user_id=user.id).first()
     if existing_artist:
-        return {"Error": f"Artist already exists for user with id {artist['user_id']}"}
+        return {"Error": "Artist already exists for this user"}
     try:
-        db_artist = Artist(**artist)
+        db_artist = Artist(**artist, user_id=user.id)
         db.add(db_artist)
         db.commit()
-        return {**artist, "id": db_artist.id}
+        return db_artist
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 
-# @app.patch("/artists/{id}/update")
+@app.patch("/artists/update", response_model=ArtistSchema)
+def update_artist(
+    updated_values: ArtistUpdate,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    if not user.artist:
+        raise HTTPException(404, "Artist not found for this user")
+    artist = db.query(Artist).filter_by(user_id=user.id).first()
+    for k, v in updated_values.dict().items():
+        setattr(artist, k, v)
+    return artist
 
 
-@app.put("/artists/profile_pic")
+@app.put("/artists/profile_pic", response_model=ArtistSchema)
 def update_profile_pic(
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     t = file.content_type.split("/")
     if file.size > 5000000:
@@ -59,16 +79,14 @@ def update_profile_pic(
             status_code=400,
             detail="Only images can be uploaded as a profile picture",
         )
-    artist = db.query(Artist).filter_by(user_id=user_id).first()
+    artist = db.query(Artist).filter_by(user_id=user.id).first()
     if artist:
         try:
-            url = upload_image(file, f"{user_id}_profile_pic")
+            url = upload_image(file, f"{user.username}_profile_pic")
             artist.profile_pic_url = url
             db.commit()
             return artist
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
     else:
-        raise HTTPException(
-            status_code=404, detail=f"No Artist found for user with id of {user_id}"
-        )
+        raise HTTPException(status_code=404, detail="No Artist found for this user")

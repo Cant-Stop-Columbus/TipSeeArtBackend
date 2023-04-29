@@ -1,6 +1,7 @@
 from pydantic import BaseModel
-from .user import UserSafe
 from typing import Optional
+
+from api.schemas.user import UserSafe
 
 
 class ArtistUpdate(BaseModel):
@@ -12,6 +13,14 @@ class ArtistUpdate(BaseModel):
 
 class ArtistRegister(ArtistUpdate):
     user_id: int
+
+
+class ArtistForUser(ArtistUpdate):
+    profile_pic_url: Optional[str]
+
+
+class ArtistWithId(ArtistUpdate):
+    id: int
 
 
 class ArtistSchema(ArtistUpdate):

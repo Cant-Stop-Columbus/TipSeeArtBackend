@@ -11,4 +11,4 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     password = Column(String, nullable=False)
     sudo = Column(Boolean, nullable=False, default=False)
-    artist = relationship("Artist", back_populates="user")
+    artist = relationship("Artist", back_populates="user", lazy="joined")
