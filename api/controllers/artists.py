@@ -1,6 +1,6 @@
 from fastapi import Depends, File, HTTPException, Response, status, UploadFile, Form
 from api import app
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from api.database import get_db
 from api.schemas import ArtistSchema, ArtistRegister
 from api.models import Artist, User
@@ -16,7 +16,7 @@ def artist_index(db: Session = Depends(get_db)):
 
 @app.get("/artists/{name}", response_model=ArtistSchema)
 def get_artist(name: str, db: Session = Depends(get_db)):
-    user = db.query(User).filter_by(name=name).first()
+    user = db.query(User).filter_by(username=name).first()
     artist = None
     if user:
         artist = db.query(Artist).filter_by(user_id=user.id).first()
