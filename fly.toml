@@ -1,37 +1,13 @@
-# fly.toml file generated for canvassing on 2023-03-17T14:59:41-04:00
+# fly.toml app configuration file generated for tipseeart on 2023-04-29T09:09:22-04:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
 
-app = "canvassing"
-kill_signal = "SIGINT"
-kill_timeout = 5
-processes = []
+app = "tipseeart"
+primary_region = "atl"
 
-[env]
-
-[experimental]
-  auto_rollback = true
-
-[[services]]
-  http_checks = []
+[http_service]
   internal_port = 8080
-  processes = ["app"]
-  protocol = "tcp"
-  script_checks = []
-  [services.concurrency]
-    hard_limit = 25
-    soft_limit = 20
-    type = "connections"
-
-  [[services.ports]]
-    force_https = true
-    handlers = ["http"]
-    port = 80
-
-  [[services.ports]]
-    handlers = ["tls", "http"]
-    port = 443
-
-  [[services.tcp_checks]]
-    grace_period = "1s"
-    interval = "15s"
-    restart_limit = 0
-    timeout = "2s"
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
