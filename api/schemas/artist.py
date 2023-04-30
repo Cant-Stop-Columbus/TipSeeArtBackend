@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
+from api.schemas.media import MediaSchema
 
 from api.schemas.user import UserSafe
 
@@ -26,3 +27,7 @@ class ArtistWithId(ArtistUpdate):
 class ArtistSchema(ArtistUpdate):
     user: UserSafe
     profile_pic_url: Optional[str]
+
+
+class ArtistFull(ArtistSchema):
+    media: list[MediaSchema]
