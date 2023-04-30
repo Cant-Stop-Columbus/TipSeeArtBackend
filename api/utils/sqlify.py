@@ -1,3 +1,5 @@
+#! NB: Don't mess with this file unless you know what you're doing!
+
 import os
 
 def sqlify():
