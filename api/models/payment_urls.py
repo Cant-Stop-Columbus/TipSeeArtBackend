@@ -17,6 +17,6 @@ class PaymentUrl(Base):
     @hybrid_property
     def output(self):
         return {
-            "name": f"{self.payment_provider.name}",
+            "service": f"{self.payment_provider.name}",
             "url": self.payment_provider.url.format(self.username),
         }

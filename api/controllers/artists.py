@@ -3,8 +3,9 @@ from api import app
 from sqlalchemy.orm import Session, joinedload
 from api.database import get_db
 from api.schemas import ArtistSchema, ArtistRegister
-from api.models import Artist, User
-from api.schemas import ArtistUpdate, ArtistWithId
+from api.models import Artist, User, PaymentProvider, PaymentUrl
+from api.schemas import ArtistBase, PaymentUpdate, ArtistFull, ArtistWithId
+from typing import Optional
 from api.utils.file_upload import upload_image
 from api.auth import get_current_user
 
@@ -14,36 +15,50 @@ def artist_index(db: Session = Depends(get_db)):
     return db.query(Artist).all()
 
 
-@app.get("/artists/{name}", response_model=ArtistSchema)
+@app.get("/artists/{name}", response_model=ArtistFull)
 def get_artist(name: str, db: Session = Depends(get_db)):
     user = db.query(User).filter_by(username=name).first()
     artist = None
     if user:
         artist = db.query(Artist).filter_by(user_id=user.id).first()
     if artist:
-        return artist
+        return artist.full_output
     else:
         raise HTTPException(
             status_code=404, detail=f"Artist not found for user with name {name}"
         )
 
 
-@app.post(
-    "/artists/create", status_code=status.HTTP_201_CREATED, response_model=ArtistWithId
-)
+@app.post("/artists/create", status_code=status.HTTP_201_CREATED)
 def create_artist(
-    artist: ArtistUpdate,
+    artist: ArtistBase,
+    payment_urls: Optional[list[PaymentUpdate]],
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
     artist = artist.dict()
     existing_artist = db.query(Artist).filter_by(user_id=user.id).first()
     if existing_artist:
-        return {"Error": "Artist already exists for this user"}
+        raise HTTPException(400, "Artist already exists for this user")
     try:
         db_artist = Artist(**artist, user_id=user.id)
         db.add(db_artist)
         db.commit()
+        db.refresh(db_artist)
+        for payment in payment_urls:
+            provider = (
+                db.query(PaymentProvider).filter_by(name=payment.provider_name).first()
+            )
+            if not provider:
+                provider = db.query(PaymentProvider).filter_by(name="other").first()
+            db_url = PaymentUrl(
+                artist_id=db_artist.id,
+                payment_provider_id=provider.id,
+                username=payment.username,
+            )
+            db.add(db_url)
+        db.commit()
+        db.refresh(db_artist)
         return db_artist
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -51,7 +66,7 @@ def create_artist(
 
 @app.patch("/artists/update", response_model=ArtistSchema)
 def update_artist(
-    updated_values: ArtistUpdate,
+    updated_values: ArtistBase,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):

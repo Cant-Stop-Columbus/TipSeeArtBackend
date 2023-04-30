@@ -1,8 +1,5 @@
 from datetime import timedelta
-from typing import Annotated
-import bcrypt
-from api import SALT, app
-from sqlalchemy import func
+from api import app
 from sqlalchemy.orm import Session
 from api.database import get_db
 from fastapi import Depends, HTTPException, status
@@ -21,7 +18,7 @@ from api.auth import (
 @app.post("/user/create", status_code=status.HTTP_201_CREATED, response_model=Token)
 async def create_user(user: UserRegister, db: Session = Depends(get_db)):
     try:
-        user_data = {**user.dict()}
+        user_data = user.dict()
         user_data["password"] = get_password_hash(user_data["password"])
         db_user = User(**user_data)
         db.add(db_user)
@@ -57,4 +54,4 @@ async def login_for_access_token(
 
 @app.get("/me", response_model=UserArtist)
 def get_me(user: User = Depends(get_current_user)):
-    return user
+    return user.artist_output
