@@ -32,9 +32,9 @@ def upgrade() -> None:
         payment_providers,
         [
             {"id": 1, "name": "other", "url": "{}"},
-            {"id": 2, "cashapp": "other", "url": "https://cash.app/${}"},
-            {"id": 3, "venmo": "other", "url": "https://venmo.com/{}"},
-            {"id": 4, "paypal": "other", "url": "https://paypal.me/{}"},
+            {"id": 2, "name": "cashapp", "url": "https://cash.app/${}"},
+            {"id": 3, "name": "venmo", "url": "https://venmo.com/{}"},
+            {"id": 4, "name": "paypal", "url": "https://paypal.me/{}"},
         ],
     )
     # ### end Alembic commands ###
