@@ -1,3 +1,5 @@
+#! NB: Don't mess with this file unless you know what you're doing!
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
