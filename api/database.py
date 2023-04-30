@@ -1,3 +1,5 @@
+#! NB: Don't mess with this file unless you know what you're doing!
+
 import os
 from sqlalchemy import Column, ForeignKey, Integer, Table, create_engine
 from sqlalchemy.ext.declarative import declarative_base
