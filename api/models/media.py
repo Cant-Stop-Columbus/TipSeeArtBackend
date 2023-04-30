@@ -10,3 +10,4 @@ class Media(Base):
     media_type = Column(String, nullable=False)
     artist_id = mapped_column(ForeignKey("artists.id"))
     artist = relationship("Artist", back_populates="media", lazy="joined")
+    url = Column(String, nullable=False)

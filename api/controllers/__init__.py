@@ -3,3 +3,4 @@ from .artists import *
 from .users import *
 from .media import *
 from .payment_providers import *
+from .social_links import *

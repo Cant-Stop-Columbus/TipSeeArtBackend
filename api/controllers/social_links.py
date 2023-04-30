@@ -3,14 +3,14 @@ from fastapi import Depends, HTTPException
 from api.database import get_db
 from api.auth import get_current_user
 from sqlalchemy.orm import Session
-from api.models import User, Artist, PaymentUrl, PaymentProvider
+from api.models import User, Artist, SocialLink, SocialMedia
 
-from api.schemas import PaymentUpdate, PaymentCreate
+from api.schemas import SocialUpdate, SocialCreate
 
 
-@app.post("/payments/add")
+@app.post("/social/add")
 def add_payment_methods(
-    payment: PaymentCreate,
+    social: SocialCreate,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
@@ -18,40 +18,36 @@ def add_payment_methods(
         artist = db.query(Artist).filter_by(user_id=user.id).first()
         if not artist:
             raise HTTPException(404, "Artist not found for this user")
-        existing_payments = dict(
+        existing_socials = dict(
             list(
                 map(
-                    lambda x: (x.payment_provider.name, x.payment_provider.id),
-                    artist.payment_urls,
+                    lambda x: (x.social_media.name, x.social_media.id),
+                    artist.social_links,
                 )
             )
         )
-        if payment.provider_name == "other":
+        if social.social_name == "other":
             db.add(
-                PaymentUrl(
-                    username=payment.username,
-                    payment_provider_id=1,
+                SocialLink(
+                    username=social.username,
+                    social_media_id=1,
                     artist_id=artist.id,
                 )
             )
-        elif payment.provider_name not in existing_payments.keys():
-            method = (
-                db.query(PaymentProvider).filter_by(name=payment.provider_name).first()
-            )
+        elif social.social_name not in existing_socials.keys():
+            method = db.query(SocialMedia).filter_by(name=social.social_name).first()
             method_id = 1
             if method:
                 method_id = method.id
             db.add(
-                PaymentUrl(
-                    username=payment.username,
-                    payment_provider_id=method_id,
+                SocialLink(
+                    username=social.username,
+                    social_media_id=method_id,
                     artist_id=artist.id,
                 )
             )
         else:
-            raise HTTPException(
-                400, f"Payment method from {payment.provider_name} already exists"
-            )
+            raise HTTPException(400, f"Link for {social.social_name} already exists")
         db.commit()
         db.refresh(artist)
         return artist.full_output
@@ -59,20 +55,20 @@ def add_payment_methods(
         raise HTTPException(500, str(e))
 
 
-@app.patch("/payments/update")
+@app.patch("/social/update")
 def update_payment(
-    updated: PaymentUpdate,
+    updated: SocialUpdate,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
     try:
-        payment_url = db.query(PaymentUrl).get(updated.id)
-        if not payment_url:
-            raise HTTPException(404, f"Payment {updated.id} not found")
+        social_link = db.query(SocialLink).get(updated.id)
+        if not social_link:
+            raise HTTPException(404, f"Link {updated.id} not found")
         artist = db.query(Artist).filter_by(user_id=user.id).first()
         if not artist:
             raise HTTPException(404, "Artist not found for this user")
-        payment_url.username = updated.username
+        social_link.username = updated.username
         db.commit()
         db.refresh(artist)
         return artist.full_output
@@ -80,21 +76,21 @@ def update_payment(
         raise HTTPException(500, str(e))
 
 
-@app.delete("/payments/delete")
+@app.delete("/social/delete")
 def delete_payment(
     payment_id: int,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
     try:
-        payment_url = db.query(PaymentUrl).get(payment_id)
-        if not payment_url:
-            raise HTTPException(404, f"Payment {payment_id} not found")
+        social_link = db.query(SocialLink).get(payment_id)
+        if not social_link:
+            raise HTTPException(404, f"Link {payment_id} not found")
         artist = db.query(Artist).filter_by(user_id=user.id).first()
         if not artist:
             raise HTTPException(404, "Artist not found for this user")
-        if payment_url.artist_id == artist.id:
-            db.delete(payment_url)
+        if social_link.artist_id == artist.id:
+            db.delete(social_link)
             db.commit()
             db.refresh(artist)
             return artist.full_output

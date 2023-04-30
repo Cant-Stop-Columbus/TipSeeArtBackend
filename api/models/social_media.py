@@ -3,12 +3,12 @@ from sqlalchemy.orm import relationship
 from api.database import Base
 
 
-class PaymentProvider(Base):
-    __tablename__ = "payment_providers"
+class SocialMedia(Base):
+    __tablename__ = "social_media"
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
     url = Column(String, nullable=False)
-    payment_url = relationship(
-        "PaymentUrl", back_populates="payment_provider", lazy="joined"
+    social_link = relationship(
+        "SocialLink", back_populates="social_media", lazy="joined"
     )

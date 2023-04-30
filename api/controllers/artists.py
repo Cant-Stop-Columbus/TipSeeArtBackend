@@ -3,8 +3,15 @@ from api import app
 from sqlalchemy.orm import Session
 from api.database import get_db
 from api.schemas import ArtistSchema
-from api.models import Artist, User, PaymentProvider, PaymentUrl
-from api.schemas import ArtistBase, PaymentCreate, ArtistFull
+from api.models import (
+    Artist,
+    User,
+    PaymentProvider,
+    PaymentUrl,
+    SocialMedia,
+    SocialLink,
+)
+from api.schemas import ArtistBase, PaymentCreate, ArtistFull, SocialCreate
 from typing import Optional
 from api.utils.file_upload import upload_image
 from api.auth import get_current_user
@@ -33,6 +40,7 @@ def get_artist(name: str, db: Session = Depends(get_db)):
 def create_artist(
     artist: ArtistBase,
     payment_urls: Optional[list[PaymentCreate]],
+    social_links: Optional[list[SocialCreate]],
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
@@ -54,6 +62,16 @@ def create_artist(
             db_url = PaymentUrl(
                 artist_id=db_artist.id,
                 payment_provider_id=provider.id,
+                username=payment.username,
+            )
+            db.add(db_url)
+        for social in social_links:
+            media = db.query(SocialMedia).filter_by(name=social.social_name).first()
+            if not media:
+                media = db.query(SocialMedia).filter_by(name="other").first()
+            db_url = SocialLink(
+                artist_id=db_artist.id,
+                social_media_id=media.id,
                 username=payment.username,
             )
             db.add(db_url)
@@ -97,7 +115,7 @@ def update_profile_pic(
     artist = db.query(Artist).filter_by(user_id=user.id).first()
     if artist:
         try:
-            url = upload_image(file, f"{user.username}_profile_pic")
+            url = upload_image(file, f"{user.username}_profile_pic.{t[1]}")
             artist.profile_pic_url = url
             db.commit()
             return artist

@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional
 from api.schemas.media import MediaSchema
+from api.schemas.social_links import SocialSchema
 
 from api.schemas.user import UserSafe
 from api.schemas.payment_urls import PaymentSchema, PaymentCreate
@@ -33,6 +34,7 @@ class ArtistSchema(ArtistBase):
 class ArtistFull(ArtistSchema):
     media: list[MediaSchema]
     payment_urls: list[PaymentSchema]
+    social_links: list[SocialSchema]
 
 
 class ArtistUpdate(ArtistBase):

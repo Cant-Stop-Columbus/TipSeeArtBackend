@@ -35,6 +35,8 @@ def media_upload(
             media = Media(url=url, media_type=t[0], artist_id=artist.id)
             db.add(media)
             db.commit()
+            db.refresh(artist)
+            return artist.full_output
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
     else:
