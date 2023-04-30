@@ -10,6 +10,9 @@ Assuming you have python and curl installed, run the following commands
 ## Downloading required packages
 `pip install -r requirements.txt`
 
+## ERD for the associated db
+![tipsee ERD](./ERD.png)
+
 ## Alembic Database Management Commands
 Creates the tables in your database
 ### Generate a new migration based on changes to models in api/models
