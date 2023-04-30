@@ -115,7 +115,7 @@ def update_profile_pic(
     artist = db.query(Artist).filter_by(user_id=user.id).first()
     if artist:
         try:
-            url = upload_image(file, f"{user.username}_profile_pic")
+            url = upload_image(file, f"{user.username}_profile_pic.{t[1]}")
             artist.profile_pic_url = url
             db.commit()
             return artist
