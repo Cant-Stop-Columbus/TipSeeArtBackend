@@ -3,7 +3,7 @@ from typing import Optional
 from api.schemas.media import MediaSchema
 
 from api.schemas.user import UserSafe
-from api.schemas.payment_urls import PaymentSchema
+from api.schemas.payment_urls import PaymentSchema, PaymentCreate
 
 
 class ArtistBase(BaseModel):
@@ -33,3 +33,7 @@ class ArtistSchema(ArtistBase):
 class ArtistFull(ArtistSchema):
     media: list[MediaSchema]
     payment_urls: list[PaymentSchema]
+
+
+class ArtistUpdate(ArtistBase):
+    payment_providers: list[PaymentCreate]

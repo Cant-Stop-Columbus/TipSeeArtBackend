@@ -19,4 +19,5 @@ class PaymentUrl(Base):
         return {
             "service": f"{self.payment_provider.name}",
             "url": self.payment_provider.url.format(self.username),
+            "id": self.id,
         }

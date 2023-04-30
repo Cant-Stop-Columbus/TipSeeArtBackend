@@ -1,10 +1,10 @@
 from fastapi import Depends, File, HTTPException, Response, status, UploadFile, Form
 from api import app
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session
 from api.database import get_db
-from api.schemas import ArtistSchema, ArtistRegister
+from api.schemas import ArtistSchema
 from api.models import Artist, User, PaymentProvider, PaymentUrl
-from api.schemas import ArtistBase, PaymentUpdate, ArtistFull, ArtistWithId
+from api.schemas import ArtistBase, PaymentCreate, ArtistFull
 from typing import Optional
 from api.utils.file_upload import upload_image
 from api.auth import get_current_user
@@ -32,7 +32,7 @@ def get_artist(name: str, db: Session = Depends(get_db)):
 @app.post("/artists/create", status_code=status.HTTP_201_CREATED)
 def create_artist(
     artist: ArtistBase,
-    payment_urls: Optional[list[PaymentUpdate]],
+    payment_urls: Optional[list[PaymentCreate]],
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
@@ -59,7 +59,7 @@ def create_artist(
             db.add(db_url)
         db.commit()
         db.refresh(db_artist)
-        return db_artist
+        return db_artist.full_output
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
