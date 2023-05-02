@@ -50,5 +50,5 @@ async def login_for_access_token(
 
 
 @app.get("/me", response_model=UserArtist)
-def get_me(user: User = Depends(get_current_user)):
+async def get_me(user: User = Depends(get_current_user)):
     return user.artist_output

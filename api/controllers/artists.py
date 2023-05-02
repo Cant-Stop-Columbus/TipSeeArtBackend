@@ -18,12 +18,12 @@ from api.auth import get_current_user
 
 
 @app.get("/artists", response_model=list[ArtistSchema])
-def artist_index(db: Session = Depends(get_db)):
+async def artist_index(db: Session = Depends(get_db)):
     return db.query(Artist).all()
 
 
 @app.get("/artists/{name}", response_model=ArtistFull)
-def get_artist(name: str, db: Session = Depends(get_db)):
+async def get_artist(name: str, db: Session = Depends(get_db)):
     user = db.query(User).filter_by(username=name).first()
     artist = None
     if user:
@@ -37,7 +37,7 @@ def get_artist(name: str, db: Session = Depends(get_db)):
 
 
 @app.post("/artists/create", status_code=status.HTTP_201_CREATED)
-def create_artist(
+async def create_artist(
     artist: ArtistBase,
     payment_urls: Optional[list[PaymentCreate]],
     social_links: Optional[list[SocialCreate]],
@@ -83,7 +83,7 @@ def create_artist(
 
 
 @app.patch("/artists/update", response_model=ArtistSchema)
-def update_artist(
+async def update_artist(
     updated_values: ArtistBase,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
@@ -97,7 +97,7 @@ def update_artist(
 
 
 @app.put("/artists/profile_pic", response_model=ArtistSchema)
-def update_profile_pic(
+async def update_profile_pic(
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),

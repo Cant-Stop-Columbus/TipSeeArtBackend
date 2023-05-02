@@ -9,7 +9,7 @@ from api.schemas import SocialUpdate, SocialCreate
 
 
 @app.post("/social/add")
-def add_payment_methods(
+async def add_payment_methods(
     social: SocialCreate,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
@@ -56,7 +56,7 @@ def add_payment_methods(
 
 
 @app.patch("/social/update")
-def update_payment(
+async def update_payment(
     updated: SocialUpdate,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
@@ -77,7 +77,7 @@ def update_payment(
 
 
 @app.delete("/social/delete")
-def delete_payment(
+async def delete_payment(
     payment_id: int,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
